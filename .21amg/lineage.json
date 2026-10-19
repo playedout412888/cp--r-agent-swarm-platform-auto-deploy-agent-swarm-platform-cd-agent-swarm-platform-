@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "root": "21amG",
+  "brain": "Nexus",
+  "repository": "playedout412888/cp--r-agent-swarm-platform-auto-deploy-agent-swarm-platform-cd-agent-swarm-platform-",
+  "component": "agent-swarm",
+  "relationship": "agent_platform_candidate",
+  "provenance": "RECOVERED",
+  "verification_required": true,
+  "rule": "Do not infer implementation from conversation history alone; verify code, workflows, deployments and dependencies before promoting state."
+}
