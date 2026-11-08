@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:control-plane:daily-brief-result:v1",
+  "title": "Daily Brief Result",
+  "type": "object",
+  "additionalProperties": false,
+  "x-provenance": "reconstructed-from-thread",
+  "required": [
+    "schemaVersion",
+    "projectId",
+    "generatedAt",
+    "facts",
+    "priorities",
+    "missingInformation",
+    "aiGeneration",
+    "delivery"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "projectId": {
+      "type": "string"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "facts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["openCount", "blocked", "dueSoon", "missingDates", "referencedTaskIds"],
+      "properties": {
+        "openCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "blocked": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "dueSoon": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "missingDates": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "referencedTaskIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+    },
+    "priorities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["taskId", "reason"],
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "missingInformation": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "aiGeneration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason"],
+      "properties": {
+        "status": {
+          "enum": ["skipped", "unavailable", "validated"]
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "delivery": {
+      "enum": ["inbox"]
+    }
+  }
+}

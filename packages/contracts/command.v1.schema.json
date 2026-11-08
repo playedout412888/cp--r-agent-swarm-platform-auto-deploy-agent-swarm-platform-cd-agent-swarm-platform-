@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:control-plane:command:v1",
+  "title": "Control Plane Command",
+  "type": "object",
+  "additionalProperties": false,
+  "x-provenance": "reconstructed-from-thread",
+  "required": [
+    "schemaVersion",
+    "idempotencyKey",
+    "action",
+    "input"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "idempotencyKey": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 128
+    },
+    "action": {
+      "enum": [
+        "system.health",
+        "project.dailyBrief"
+      ]
+    },
+    "input": {
+      "type": "object"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "action": {
+          "const": "system.health"
+        },
+        "input": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {}
+        }
+      }
+    },
+    {
+      "properties": {
+        "action": {
+          "const": "project.dailyBrief"
+        },
+        "input": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["projectId", "delivery"],
+          "properties": {
+            "projectId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "delivery": {
+              "enum": [
+                "inbox",
+                "pushcut"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}
