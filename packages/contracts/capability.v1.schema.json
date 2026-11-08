@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:control-plane:capability:v1",
+  "title": "Control Plane Capability",
+  "type": "object",
+  "additionalProperties": false,
+  "x-provenance": "reconstructed-from-thread",
+  "required": [
+    "id",
+    "version",
+    "adapter",
+    "inputSchemaRef",
+    "outputSchemaRef",
+    "requiredPermissions",
+    "executionTarget",
+    "sideEffectClass",
+    "timeoutSeconds",
+    "retryPolicy"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "adapter": {
+      "type": "string"
+    },
+    "inputSchemaRef": {
+      "type": "string"
+    },
+    "outputSchemaRef": {
+      "type": "string"
+    },
+    "requiredPermissions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "executionTarget": {
+      "type": "string"
+    },
+    "sideEffectClass": {
+      "type": "string"
+    },
+    "approvalPolicyRef": {
+      "type": ["string", "null"]
+    },
+    "timeoutSeconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "retryPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maxAttempts", "onAmbiguousDelivery"],
+      "properties": {
+        "maxAttempts": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "onAmbiguousDelivery": {
+          "const": "mark-unknown"
+        }
+      }
+    }
+  }
+}

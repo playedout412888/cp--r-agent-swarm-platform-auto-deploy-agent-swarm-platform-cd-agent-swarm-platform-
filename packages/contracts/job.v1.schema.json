@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:control-plane:job:v1",
+  "title": "Control Plane Job",
+  "type": "object",
+  "additionalProperties": false,
+  "x-provenance": "reconstructed-from-thread",
+  "required": [
+    "id",
+    "commandId",
+    "workflow",
+    "state",
+    "currentStep",
+    "traceId",
+    "createdAt",
+    "result",
+    "error"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "commandId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "state": {
+      "enum": [
+        "queued",
+        "running",
+        "succeeded",
+        "waiting_approval",
+        "retry_wait",
+        "failed",
+        "unknown",
+        "cancelled"
+      ]
+    },
+    "currentStep": {
+      "type": ["string", "null"]
+    },
+    "traceId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "result": {
+      "type": ["object", "null"]
+    },
+    "error": {
+      "type": ["object", "null"]
+    }
+  }
+}

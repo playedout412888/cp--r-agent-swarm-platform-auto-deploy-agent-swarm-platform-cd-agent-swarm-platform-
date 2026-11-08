@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:control-plane:workflow:v1",
+  "title": "Control Plane Workflow",
+  "type": "object",
+  "additionalProperties": false,
+  "x-provenance": "reconstructed-from-thread",
+  "required": ["id", "version", "steps"],
+  "properties": {
+    "id": {
+      "enum": ["system.health", "project.dailyBrief"]
+    },
+    "version": {
+      "type": "string"
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "capability", "sideEffectClass"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "capability": {
+            "type": "string"
+          },
+          "sideEffectClass": {
+            "enum": ["none", "internal", "external-notification"]
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,313 @@
+openapi: 3.1.0
+info:
+  title: Control Plane API
+  version: "1.0.0"
+  description: |
+    Reconstructed OpenAPI 3.1 from the Control Plane V1 thread.
+    Gate A implements system.health and project.dailyBrief locally.
+    Pushcut, GitHub, and cloud providers are not connected.
+    This document is not a production deployment claim.
+  x-provenance: reconstructed-from-thread
+servers:
+  - url: http://127.0.0.1:3000
+    description: Local development only
+security:
+  - bearerAuth: []
+tags:
+  - name: commands
+  - name: jobs
+  - name: inbox
+  - name: capabilities
+  - name: approvals
+  - name: devices
+  - name: health
+paths:
+  /v1/commands:
+    post:
+      tags: [commands]
+      operationId: submitCommand
+      summary: Submit a validated, idempotent command
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "./command.v1.schema.json"
+            examples:
+              health:
+                value:
+                  schemaVersion: "1.0"
+                  idempotencyKey: health-test-20261006-0001
+                  action: system.health
+                  input: {}
+              dailyBrief:
+                value:
+                  schemaVersion: "1.0"
+                  idempotencyKey: brief-test-20261006-0001
+                  action: project.dailyBrief
+                  input:
+                    projectId: "33333333-3333-4333-8333-333333333333"
+                    delivery: inbox
+      responses:
+        "202":
+          description: Command and job durably stored
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommandAccepted"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+  /v1/jobs/{id}:
+    get:
+      tags: [jobs]
+      operationId: getJob
+      summary: Retrieve job state and result
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Authorized job
+          content:
+            application/json:
+              schema:
+                $ref: "./job.v1.schema.json"
+        "401":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+  /v1/capabilities:
+    get:
+      tags: [capabilities]
+      operationId: listCapabilities
+      summary: List operations permitted for the caller
+      responses:
+        "200":
+          description: Registered capabilities
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CapabilityList"
+        "401":
+          $ref: "#/components/responses/Error"
+  /v1/inbox:
+    get:
+      tags: [inbox]
+      operationId: listInbox
+      summary: Retrieve paginated result artifacts
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: Inbox artifacts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InboxList"
+        "401":
+          $ref: "#/components/responses/Error"
+  /v1/approvals/{id}:
+    get:
+      tags: [approvals]
+      operationId: getApproval
+      summary: Inspect the exact action awaiting approval
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "501":
+          description: Deferred to a later gate
+          content:
+            application/json:
+              schema:
+                $ref: "./error.v1.schema.json"
+  /v1/approvals/{id}/decision:
+    post:
+      tags: [approvals]
+      operationId: decideApproval
+      summary: Approve or reject that action
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalDecision"
+      responses:
+        "501":
+          description: Deferred to a later gate
+          content:
+            application/json:
+              schema:
+                $ref: "./error.v1.schema.json"
+  /v1/device-events:
+    post:
+      tags: [devices]
+      operationId: submitDeviceEvent
+      summary: Submit a heartbeat or execution report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [type, payload]
+              properties:
+                type:
+                  type: string
+                payload:
+                  type: object
+      responses:
+        "501":
+          description: Deferred to a later gate
+          content:
+            application/json:
+              schema:
+                $ref: "./error.v1.schema.json"
+  /v1/health:
+    get:
+      tags: [health]
+      operationId: getHealth
+      summary: Return minimal public liveness
+      security: []
+      responses:
+        "200":
+          description: Process is up
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /v1/readiness:
+    get:
+      tags: [health]
+      operationId: getReadiness
+      summary: Return authenticated dependency readiness
+      responses:
+        "200":
+          description: Database reachable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Readiness"
+        "401":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Locally provisioned controller token. Gate B replaces this bootstrap.
+  responses:
+    Error:
+      description: Error contract
+      content:
+        application/json:
+          schema:
+            $ref: "./error.v1.schema.json"
+  schemas:
+    CommandAccepted:
+      type: object
+      additionalProperties: false
+      required: [commandId, jobId, state, replayed]
+      properties:
+        commandId:
+          type: string
+          format: uuid
+        jobId:
+          type: string
+          format: uuid
+        state:
+          $ref: "./job.v1.schema.json#/properties/state"
+        replayed:
+          type: boolean
+    CapabilityList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "./capability.v1.schema.json"
+    InboxList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, jobId, type, createdAt, content]
+            properties:
+              id:
+                type: string
+                format: uuid
+              jobId:
+                type: string
+                format: uuid
+              type:
+                type: string
+              createdAt:
+                type: string
+                format: date-time
+              content:
+                type: object
+    ApprovalDecision:
+      type: object
+      additionalProperties: false
+      required: [decision, actionHash]
+      properties:
+        decision:
+          enum: [approved, rejected]
+        actionHash:
+          type: string
+          pattern: "^[0-9a-f]{64}$"
+    Health:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status:
+          const: ok
+    Readiness:
+      type: object
+      additionalProperties: false
+      required: [status, database]
+      properties:
+        status:
+          const: ready
+        database:
+          const: reachable
